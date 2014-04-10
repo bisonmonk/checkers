@@ -38,14 +38,34 @@ class Piece
     #InvalidMoveError
   end
   
-  #illegal slide/jump should return false; else true
   def perform_slide
-    #
+
   end
   
   
   def perform_jump
     #should remove the jumped piece from the Board
+  end
+  
+  def valid_moves
+    valid_moves = []
+  
+    move_diffs.each do |(dx, dy)|
+      cur_x, cur_y = pos
+      pos = [cur_x + dx, cur_y + dy]
+    
+      #ensure that position is within bounds of the board
+      next unless board.valid_pos?(pos)
+    
+      #if the board is empty at that position then slide
+      if board.empty?(pos)
+        valid_moves << pos
+      #if position is occupied by a opponent piece add is also
+      elsif board[pos].color != self.color
+        valid_moves << pos
+      end
+    end
+    valid_moves
   end
   
   def valid_move_seq?
@@ -66,7 +86,7 @@ class Piece
     #if a move int he sequence fails, and InvalidMoveError should
     #be raised
     
-    #if the sequence is one move long, ry sliding; if that
+    #if the sequence is one move long, try sliding; if that
     #doesn't work, try jumping
     #if the sequence is multiple moves long, evey move must be a jump
   end
@@ -74,17 +94,22 @@ class Piece
   def move_diffs
     #initially move_diffs only go towards opponents side
     #after kinging, allows movement diffs in both directions
-    move_diffs = [[1, 1], [1, -1]]
+    
+    #sliding move_diffs NEED TO ADD jumping move_diffs!!!!!!!!!!!!!!!!!!!!!
+    #must then filter out invalid moves after 
+                  #sliding diffs , jumping diffs    
+    move_diffs = [[1, 1], [1, -1], [2, 2], [2, -2]]
     if self.is_king
-      move_diffs += [[-1, -1], [-1, 1]]
+      move_diffs += [[-1, -1], [-1, 1], [-2, -2], [-2, 2]]
     end
     move_diffs
+    
   end
   
   #Called after each move to check if 
   #piece is at the end?
   def maybe_promote
-    #if piece reaches opposite end
+    #if piece.color == a color && piece.pos == at opponents end of board
       #self.promote_to_king = true
     #end
   end
@@ -151,7 +176,7 @@ class Board
   # end
   
   def valid_pos?(pos)
-    pos.all? { |coord| coor.between?(0, 7)}
+    pos.all? { |coord| coor.between?(0, 7) }
   end
 end
 
