@@ -40,7 +40,7 @@ class Piece
   
   def perform_slide(to_pos)
     unless self.valid_moves.include?(to_pos)
-      raise InvalidMoveError
+      raise "cannot perform that slide move"
     end
     board.move_piece!(self.pos, to_pos)
   end
@@ -50,7 +50,7 @@ class Piece
   def perform_jump(to_pos)
     #should remove the jumped piece from the Board
     unless self.valid_moves.include?(to_pos)
-      raise InvalidMoveError
+      raise "cannot perform that jump move"
     end
     board.move_piece!(self.pos, to_pos)
     board.remove_piece(self.pos, to_pos)#calculate square between squares
@@ -176,17 +176,23 @@ class Board
   def remove_piece(opps_from, opps_to)
     row = (opps_from[0] + opps_to[0]) / 2
     col = (opps_from[1] + opps_to[1]) / 2
-    [row, col]
+    board[[row, col]] = nil
   end
   
   #move without performing checks,
   #checks have been made in perform_jump
   #and perform_slide
   def move_piece!(from_pos, to_pos)
+    raise "from position is empty" if empty?(from_pos)
+    
     piece = self[from_pos]
     
-    if !piece.valid_moves.include?(to_pos)
+    if piece.color != turn_color
+      raise "move your own piece"
+    elsif !piece.valid_moves.include?(to_pos)
       raise "piece cannot move like that"
+    elsif !pos_within_bounds?(from_pos)
+      raise "piece cannot move out of board boundaries"
     end
     
     self[to_pos] = piece
@@ -212,19 +218,6 @@ class Board
     self[pos]nil?
   end
   
-  # def move_piece(turn_color, from_pos, to_pos)
-  #   raise "from position is empty" if empty?(from_pos)
-  #   
-  #   piece = self[from_pos]
-  #   if piece.color != turn_color
-  #     raise "move your own piece"
-  #   elsif !piece.moves.include?(to_pos)
-  #     raise "piece doesn't move like that"
-  #   elsif !piece.valid_moves.include?(to_pos)
-  #     raise "can't make that move"
-  #   end
-  # end
-  
   #was
   #valid_pos?
   def pos_within_bounds?(pos)
@@ -243,6 +236,66 @@ class Game
       :black => HumanPlayer.new(:black)
     }
     @current_player = :white
+    @move_hash = build_move_hash
   end
   
+  def play
+    until game_over
+      players[current_player].play_turn(board)
+      @current_player = (current_player == :red) ? :black : :red
+    end
+    
+    puts board.render
+    puts "#{current_player} has LOST!!!"
+  end
+  
+  def build_move_hash
+    move_hash = {}
+    col = 0
+    ('a'..'h').to_a.each do |letter|
+      8.downto(1).to_a.each do |row|
+        move = letter + row.to_s
+        move_hash[move] = [8-row, col]
+      end
+      col += 1
+    end
+    move_hash
+  end
+end
+
+class HumanPlayer
+  attr_reader :color
+
+  def initialize(color)
+    @color = color
+  end
+
+  def play_turn(board)
+    begin
+      puts board.render
+      puts "Current player: #{color}"
+
+      from_pos = get_pos("From pos:")
+      
+      #Need to allow a move_sequence
+      move_sequence = get_sequence("Sequence of moves: ")
+      
+      #to_pos = get_pos("To pos:")
+      board.perform_moves(color, from_pos, move_sequence)
+    rescue StandardError => e
+      puts "Error: #{e.message}"
+      retry
+    end
+  end
+
+  private
+  def get_pos(prompt)
+    puts prompt
+    gets.chomp#.split(",")#.map { |coord_s| Integer(coord_s) }
+  end
+  
+  def get_sequence(prompt)
+    puts prompt
+    gets.chomp.split(" ")#.map { |move| }
+  end
 end
