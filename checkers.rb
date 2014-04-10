@@ -15,15 +15,37 @@ class Piece
     board.add_piece(self, pos)
   end
   
+  #● black piece
+  #○ white piece
+  
+  #◆ black diamond - king
+  #◇ white diamond - king
+  
+  
   #trace for a move/move_sequence is
   #perform_moves
   # => valid_move_seq?
   # =>    if false 
   
   def perform_moves(move_sequence)
+    if valid_move_seq?(move_sequence)
+      perform_moves!(move_sequence)
+    else
+      
+    end
     #first checks valid_move_seq?, THEN
     #either calls perform_moves! or raises an
     #InvalidMoveError
+  end
+  
+  #illegal slide/jump should return false; else true
+  def perform_slide
+    #
+  end
+  
+  
+  def perform_jump
+    #should remove the jumped piece from the Board
   end
   
   def valid_move_seq?
@@ -48,16 +70,6 @@ class Piece
     #doesn't work, try jumping
     #if the sequence is multiple moves long, evey move must be a jump
   end
-  
-  #illegal slide/jump should return false; else true
-  def perform_slide
-    #
-  end
-  
-  
-  def perform_jump
-    #should remove the jumped piece from the Board
-  end
     
   def move_diffs
     #initially move_diffs only go towards opponents side
@@ -72,7 +84,9 @@ class Piece
   #Called after each move to check if 
   #piece is at the end?
   def maybe_promote
-    
+    #if piece reaches opposite end
+      #self.promote_to_king = true
+    #end
   end
   
   #Promotes this piece to king status
@@ -92,6 +106,9 @@ class Board
     #@grid = Array.new(8) { Array.new(8, nil)}
     make_starting_grid(fill_board)
   end
+  
+  #■ black square
+  #□ white square
   
   def [](pos)
     raise "invalid pos" unless valid_pos?(pos)
@@ -132,6 +149,10 @@ class Board
   #     raise "can't make that move"
   #   end
   # end
+  
+  def valid_pos?(pos)
+    pos.all? { |coord| coor.between?(0, 7)}
+  end
 end
 
 
