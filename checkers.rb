@@ -7,7 +7,7 @@ class Piece
   def initialize(color, board, pos)
     @is_king = false
     
-    raise "invalid color" unless [:red, :white].incldue?(color)
+    raise "invalid color" unless [:red, :white].include?(color)
     raise "invalid pos" unless board.valid_pos?(pos)
     
     @color, @board, @pos = color, board, pos
@@ -57,11 +57,14 @@ class Piece
       #ensure that position is within bounds of the board
       next unless board.valid_pos?(pos)
     
-      #if the board is empty at that position then slide
-      if board.empty?(pos)
+      #if the board is empty at that position then its slide
+      # =>                    slide move diff must not contain
+      # =>                    a value greater than 1
+      if board.empty?(pos) && dx.abs < 2
         valid_moves << pos
-      #if position is occupied by a opponent piece add is also
-      elsif board[pos].color != self.color
+      #if position is occupied by a opponent piece then
+      #its jump move diff must be greater than 1
+      elsif board[pos].color != self.color && dx.abs > 1
         valid_moves << pos
       end
     end
@@ -102,8 +105,16 @@ class Piece
     if self.is_king
       move_diffs += [[-1, -1], [-1, 1], [-2, -2], [-2, 2]]
     end
-    move_diffs
     
+    #red starts at bottom
+    #black starts at top
+    
+    #switch move_diffs according to the players color
+    if self.color == :red
+      #I THINK THIS IS RIGHT DEBUG LATER
+      move_diffs.each { |move_diff| move_diff.map! { |diff| diff * -1 } }
+    end
+    move_diffs  
   end
   
   #Called after each move to check if 
