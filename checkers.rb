@@ -53,7 +53,7 @@ class Piece
       raise InvalidMoveError
     end
     board.move_piece!(self.pos, to_pos)
-    board.remove_piece(#wherever opponents piece is)
+    board.remove_piece(self.pos, to_pos)#calculate square between squares
   end
   
   def valid_moves
@@ -173,8 +173,10 @@ class Board
   end
   
   #removes a jumped piece
-  def remove_piece
-    
+  def remove_piece(opps_from, opps_to)
+    row = (opps_from[0] + opps_to[0]) / 2
+    col = (opps_from[1] + opps_to[1]) / 2
+    [row, col]
   end
   
   #move without performing checks,
