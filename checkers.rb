@@ -106,15 +106,23 @@ class Piece
   #state if the move sequence fails
   def perform_moves!(move_sequence, a_board = self.board)
     #should perform the moves one-by-one
-    #if a move int he sequence fails, and InvalidMoveError should
+    #if a move in the sequence fails, and InvalidMoveError should
     #be raised
     
+    if move_sequence.count == 1
+      begin
+        perform_slide(move_sequence.first)
+      rescue
+        perform_jump(move_sequence.first)
+      end
+    elsif move_sequence.count > 1
+      perform_jump(move_sequence.first)
+      perform_moves!(move_sequence[1..-1], a_board)
+    end  
     #if the sequence is one move long, try sliding; if that
     #doesn't work, try jumping
     #if the sequence is multiple moves long, evey move must be a jump
     # => DO THIS RECURSIVELY 
-    if move_sequence.include
-    
   end
     
   def move_diffs
@@ -225,7 +233,7 @@ class Board
   end
   
   def empty?(pos)
-    self[pos]nil?
+    self[pos].nil?
   end
   
   #was
@@ -288,7 +296,7 @@ class HumanPlayer
       from_pos = get_pos("From pos:", board)
       
       #Need to allow a move_sequence
-      move_sequence = get_sequence("Sequence of moves: ")
+      move_sequence = get_sequence("Sequence of moves: ", board)
       
       #to_pos = get_pos("To pos:")
       board.perform_moves(color, from_pos, move_sequence)
