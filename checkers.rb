@@ -241,6 +241,15 @@ class Board
   def pos_within_bounds?(pos)
     pos.all? { |coord| coor.between?(0, 7) }
   end
+  
+  def pieces
+    grid.flatten.compact
+  end
+  
+  def no_pieces?(color)
+    pieces = pieces.select { |piece| piece.color == color }
+    pieces.empty?
+  end
 end
 
 
@@ -258,7 +267,7 @@ class Game
   end
   
   def play
-    until game_over
+    until board.no_pieces?(current_player)
       players[current_player].play_turn(board)
       @current_player = (current_player == :red) ? :black : :red
     end
@@ -266,6 +275,7 @@ class Game
     puts board.render
     puts "#{current_player} has LOST!!!"
   end
+
   
   def build_move_hash
     move_hash = {}
