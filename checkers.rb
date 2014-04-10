@@ -160,7 +160,7 @@ class Board
   #□ white square
   
   def [](pos)
-    raise "invalid pos" unless valid_pos?(pos)
+    raise "pos out of board bounds" unless pos_within_bounds?(pos)
     
     i, j = pos
     @grid[i][j]
@@ -168,6 +168,8 @@ class Board
   
   def add_piece(piece, pos)
     raise "position not empty" unless empty?(pos)
+    
+    self[pos] = piece
   end
   
   #removes a jumped piece
@@ -175,6 +177,9 @@ class Board
     
   end
   
+  #move without performing checks,
+  #checks have been made in perform_jump
+  #and perform_slide
   def move_piece!(from_pos, to_pos)
     piece = self[from_pos]
     
@@ -218,7 +223,9 @@ class Board
   #   end
   # end
   
-  def valid_pos?(pos)
+  #was
+  #valid_pos?
+  def pos_within_bounds?(pos)
     pos.all? { |coord| coor.between?(0, 7) }
   end
 end
