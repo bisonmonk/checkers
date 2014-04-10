@@ -26,11 +26,12 @@ class Piece
   #perform_moves
   # => valid_move_seq?
   # =>    if false 
-  
+  #board.perform_moves(color, from_pos, move_sequence)
   def perform_moves(move_sequence)
     if valid_move_seq?(move_sequence)
       perform_moves!(move_sequence)
     else
+      raise "cannot perform that move(s)"
       #throw an InvalidMoveError
     end
     #first checks valid_move_seq?, THEN
@@ -137,11 +138,11 @@ class Piece
       move_diffs += [[-1, -1], [-1, 1], [-2, -2], [-2, 2]]
     end
     
-    #red starts at bottom
-    #black starts at top
+    #red starts at top
+    #black starts at bottom
     
     #switch move_diffs according to the players color
-    if self.color == :red
+    if self.color == :black
       #I THINK THIS IS RIGHT DEBUG LATER
       move_diffs.each { |move_diff| move_diff.map! { |diff| diff * -1 } }
     end
@@ -167,7 +168,7 @@ end
 
 
 class Board
-  attr_accessor :grid
+  attr_accessor #:grid
   
   def initialize(fill_board = true)
     #@grid = Array.new(8) { Array.new(8, nil)}
@@ -197,20 +198,33 @@ class Board
     board[[row, col]] = nil
   end
   
-  #move without performing checks,
-  #checks have been made in perform_jump
-  #and perform_slide
-  def move_piece!(from_pos, to_pos)
+  def make_moves(turn_color, from_pos, move_sequence)
     raise "from position is empty" if empty?(from_pos)
     
     piece = self[from_pos]
     
     if piece.color != turn_color
       raise "move your own piece"
-    elsif !piece.valid_moves.include?(to_pos)
-      raise "piece cannot move like that"
+      #elsif !piece.valid_moves.include?(to_pos)
+      #elsif !piece.valid_move_sequence?(move_sequence)
+      #raise "piece cannot move like that"
     elsif !pos_within_bounds?(from_pos)
       raise "piece cannot move out of board boundaries"
+    end
+    
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    piece.perform_moves(move_sequence)
+  end
+  
+  #move without performing checks,
+  #checks have been made in perform_jump
+  #and perform_slide
+  #called from within Pieces
+  def move_piece!(from_pos, to_pos)
+    piece = self[from_pos]
+    
+    if !piece.valid_moves.include?(to_pos)
+      raise "piece cannot move like that"
     end
     
     self[to_pos] = piece
@@ -250,6 +264,35 @@ class Board
     pieces = pieces.select { |piece| piece.color == color }
     pieces.empty?
   end
+  
+  #assignment method
+  protected
+  def []=(pos, piece)
+    raise "invalid pos" unless valid_pos?(pos)
+
+    i, j = pos
+    @grid[i][j] = piece
+  end
+  
+  def make_starting_grid(fill_board)
+    @grid = Array.new(8) { Array.new(8) }
+    color = :red
+    cols = [1, 3, 5, 7]
+    rows = [0, 1, 2, 5, 6, 7]
+    rows.each do |row|
+      if row > 3
+        color = :black
+      end
+      if row.even?
+        cols.map! { |col| col - 1}
+      else
+        cols.map! { |col| col + 1}
+      end
+      cols.each do |col|
+        self[[row, col]] = Piece.new(color, self, [row, col])
+      end
+    end
+  end
 end
 
 
@@ -271,7 +314,7 @@ class Game
       players[current_player].play_turn(board)
       @current_player = (current_player == :red) ? :black : :red
     end
-    
+    #need to implement Board#render
     puts board.render
     puts "#{current_player} has LOST!!!"
   end
@@ -309,7 +352,7 @@ class HumanPlayer
       move_sequence = get_sequence("Sequence of moves: ", board)
       
       #to_pos = get_pos("To pos:")
-      board.perform_moves(color, from_pos, move_sequence)
+      board.make_moves(color, from_pos, move_sequence)
     rescue InvalidMoveError => e
       puts "Error: #{e.message}"
       retry
