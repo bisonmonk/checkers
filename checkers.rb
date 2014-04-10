@@ -7,7 +7,7 @@ class Piece
   def initialize(color, board, pos)
     @is_king = false
     
-    raise "invalid color" unless [:red, :white].include?(color)
+    raise "invalid color" unless [:red, :black].include?(color)
     raise "invalid pos" unless board.valid_pos?(pos)
     
     @color, @board, @pos = color, board, pos
@@ -81,8 +81,16 @@ class Piece
   end
   
   #returns true or false
-  def valid_move_seq?
+  #does perform moves need to be passed a board??????
+  def valid_move_seq?(move_sequence)
+    duped_board = Board.dup
     
+    begin
+      perform_moves!(move_sequence, duped_board)
+    rescue InvalidMoveError => e
+      puts "error: #{e.message}"
+      return false
+    end
     #calls perform_moves! on a duped Piece/Board
     #if no error is raised, return true
     #else, return false
@@ -96,7 +104,7 @@ class Piece
   #or one or more jumps
   #perform_moves! should not bother to try to restore the origin Board
   #state if the move sequence fails
-  def perform_moves!(move_sequence)
+  def perform_moves!(move_sequence, a_board = self.board)
     #should perform the moves one-by-one
     #if a move int he sequence fails, and InvalidMoveError should
     #be raised
@@ -105,6 +113,8 @@ class Piece
     #doesn't work, try jumping
     #if the sequence is multiple moves long, evey move must be a jump
     # => DO THIS RECURSIVELY 
+    if move_sequence.include
+    
   end
     
   def move_diffs
@@ -235,7 +245,7 @@ class Game
       :red => HumanPlayer.new(:red),
       :black => HumanPlayer.new(:black)
     }
-    @current_player = :white
+    @current_player = :red
     @move_hash = build_move_hash
   end
   
@@ -275,27 +285,30 @@ class HumanPlayer
       puts board.render
       puts "Current player: #{color}"
 
-      from_pos = get_pos("From pos:")
+      from_pos = get_pos("From pos:", board)
       
       #Need to allow a move_sequence
       move_sequence = get_sequence("Sequence of moves: ")
       
       #to_pos = get_pos("To pos:")
       board.perform_moves(color, from_pos, move_sequence)
-    rescue StandardError => e
+    rescue InvalidMoveError => e
       puts "Error: #{e.message}"
       retry
     end
   end
 
   private
-  def get_pos(prompt)
+  def get_pos(prompt, board)
     puts prompt
-    gets.chomp#.split(",")#.map { |coord_s| Integer(coord_s) }
+    board.move_hash[gets.chomp]
   end
   
-  def get_sequence(prompt)
+  def get_sequence(prompt, board)
     puts prompt
-    gets.chomp.split(" ")#.map { |move| }
+    gets.chomp.split(" ").map { |move| board.move_hash[move]}
   end
+end
+
+class InvalidMoveError < StandardError
 end
