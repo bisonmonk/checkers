@@ -31,20 +31,29 @@ class Piece
     if valid_move_seq?(move_sequence)
       perform_moves!(move_sequence)
     else
-      
+      #throw an InvalidMoveError
     end
     #first checks valid_move_seq?, THEN
     #either calls perform_moves! or raises an
     #InvalidMoveError
   end
   
-  def perform_slide
-
+  def perform_slide(to_pos)
+    unless self.valid_moves.include?(to_pos)
+      raise InvalidMoveError
+    end
+    board.move_piece!(self.pos, to_pos)
   end
   
   
-  def perform_jump
+  
+  def perform_jump(to_pos)
     #should remove the jumped piece from the Board
+    unless self.valid_moves.include?(to_pos)
+      raise InvalidMoveError
+    end
+    board.move_piece!(self.pos, to_pos)
+    board.remove_piece(#wherever opponents piece is)
   end
   
   def valid_moves
@@ -59,11 +68,11 @@ class Piece
     
       #if the board is empty at that position then its slide
       # =>                    slide move diff must not contain
-      # =>                    a value greater than 1
+      # =>                    a value greater than 1, see move_diffs for clarity
       if board.empty?(pos) && dx.abs < 2
         valid_moves << pos
       #if position is occupied by a opponent piece then
-      #its jump move diff must be greater than 1
+      #its jump move diff must be greater than 1, see move_diffs for clarity
       elsif board[pos].color != self.color && dx.abs > 1
         valid_moves << pos
       end
@@ -71,13 +80,16 @@ class Piece
     valid_moves
   end
   
+  #returns true or false
   def valid_move_seq?
+    
     #calls perform_moves! on a duped Piece/Board
     #if no error is raised, return true
     #else, return false
     #Will most likely require begin/rescue/else
     #because it dups the objects, valid_move_seq? will
     #not modify the original Board
+    true
   end
   
   #takes a sequence of moves. This can either be one slide,
@@ -92,6 +104,7 @@ class Piece
     #if the sequence is one move long, try sliding; if that
     #doesn't work, try jumping
     #if the sequence is multiple moves long, evey move must be a jump
+    # => DO THIS RECURSIVELY 
   end
     
   def move_diffs
@@ -155,6 +168,25 @@ class Board
   
   def add_piece(piece, pos)
     raise "position not empty" unless empty?(pos)
+  end
+  
+  #removes a jumped piece
+  def remove_piece
+    
+  end
+  
+  def move_piece!(from_pos, to_pos)
+    piece = self[from_pos]
+    
+    if !piece.valid_moves.include?(to_pos)
+      raise "piece cannot move like that"
+    end
+    
+    self[to_pos] = piece
+    self[from_pos] = nil
+    piece.pos = to_pos
+    
+    nil
   end
   
   #a duped board and duped pieces
