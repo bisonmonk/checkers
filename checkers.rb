@@ -1,20 +1,38 @@
 #a non-king Piece can move forward ony; kings can move backward and forward
 
 class Piece
-  attr_accessor :is_king
+  attr_reader :board, :color
+  attr_accessor :pos, :is_king
   
-  def initialize
+  def initialize(color, board, pos)
     @is_king = false
+    
+    raise "invalid color" unless [:red, :white].incldue?(color)
+    raise "invalid pos" unless board.valid_pos?(pos)
+    
+    @color, @board, @pos = color, board, pos
+    
+    board.add_piece(self, pos)
   end
   
-  #illegal slide/jump should return false; else true
-  def perform_slide
-    #
+  #trace for a move/move_sequence is
+  #perform_moves
+  # => valid_move_seq?
+  # =>    if false 
+  
+  def perform_moves(move_sequence)
+    #first checks valid_move_seq?, THEN
+    #either calls perform_moves! or raises an
+    #InvalidMoveError
   end
   
-  
-  def perform_jump
-    #should remove the jumped piece from the Board
+  def valid_move_seq?
+    #calls perform_moves! on a duped Piece/Board
+    #if no error is raised, return true
+    #else, return false
+    #Will most likely require begin/rescue/else
+    #because it dups the objects, valid_move_seq? will
+    #not modify the original Board
   end
   
   #takes a sequence of moves. This can either be one slide,
@@ -31,19 +49,14 @@ class Piece
     #if the sequence is multiple moves long, evey move must be a jump
   end
   
-  def valid_move_seq?
-    #calls perform_moves! on a duped Piece/Board
-    #if no error is raised, return true
-    #else, return false
-    #Will most likely require begin/rescue/else
-    #because it dups the objects, valid_move_seq? will
-    #not modify the original Board
+  #illegal slide/jump should return false; else true
+  def perform_slide
+    #
   end
   
-  def perform_moves
-    #first checks valid_move_seq?, THEN
-    #either calls perform_moves! or raises an
-    #InvalidMoveError
+  
+  def perform_jump
+    #should remove the jumped piece from the Board
   end
     
   def move_diffs
@@ -70,13 +83,57 @@ class Piece
   
 end
 
+
+
 class Board
   attr_accessor :grid
   
-  def initialize
-    @grid = Array.new(8) { Array.new(8, nil)}
+  def initialize(fill_board = true)
+    #@grid = Array.new(8) { Array.new(8, nil)}
+    make_starting_grid(fill_board)
   end
+  
+  def [](pos)
+    raise "invalid pos" unless valid_pos?(pos)
+    
+    i, j = pos
+    @grid[i][j]
+  end
+  
+  def add_piece(piece, pos)
+    raise "position not empty" unless empty?(pos)
+  end
+  
+  #a duped board and duped pieces
+  def dup
+    #like chess
+    new_board = Board.new(false)
+    
+    pieces.each do |piece|
+      piece.class.new(piece.color, new_board, piece.pos)
+    end
+    
+    new_board
+  end
+  
+  def empty?(pos)
+    self[pos]nil?
+  end
+  
+  # def move_piece(turn_color, from_pos, to_pos)
+  #   raise "from position is empty" if empty?(from_pos)
+  #   
+  #   piece = self[from_pos]
+  #   if piece.color != turn_color
+  #     raise "move your own piece"
+  #   elsif !piece.moves.include?(to_pos)
+  #     raise "piece doesn't move like that"
+  #   elsif !piece.valid_moves.include?(to_pos)
+  #     raise "can't make that move"
+  #   end
+  # end
 end
+
 
 class Game
   attr_reader :board, :current_player, :players
@@ -89,6 +146,5 @@ class Game
     }
     @current_player = :white
   end
-  
   
 end
