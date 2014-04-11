@@ -15,13 +15,6 @@ class Piece
     board.add_piece(self, pos)
   end
   
-  #● black piece
-  #○ white piece
-  
-  #◆ black diamond - king
-  #◇ white diamond - king
-  
-  
   #trace for a move/move_sequence is
   #perform_moves
   # => valid_move_seq?
@@ -163,6 +156,22 @@ class Piece
     self.is_king = true
   end
   
+  #● black piece
+  #○ red piece
+  
+  #◆ black diamond - king
+  #◇ red diamond - king
+  
+  def render
+    if self.color == :red 
+      return "◇" if self.is_king
+      return "○"
+    else
+      return "◆" if self.is_king
+      return "●"
+    end
+  end
+  
 end
 
 
@@ -293,6 +302,37 @@ class Board
       end
     end
   end
+  
+  def opposing_color(color)
+    if color == :red
+      :black
+    else
+      :red
+    end
+  end
+  
+  def render
+    square_color = :red
+
+    (0...grid.length).each do |row|
+      square_color = opposing_color(square_color)
+      print "#{8 - row} "
+      (0...grid[row].length).each do |col|
+        square = self.board.at([row, col])
+        if square.is_a?(Piece)
+          print square.render + ' '
+        else
+          ################################
+          print square.render + ' '
+          #######################
+        end
+        square_color = opposing_color(square_color)
+      end
+      print "\n"
+    end
+    puts " a b c d e f g h"
+  end
+  
 end
 
 
